@@ -1,0 +1,494 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ARTIST
+  MANAGER
+  LABEL
+  PARTNER
+  ADMIN
+}
+
+enum PartnerStatus {
+  PENDING
+  UNDER_REVIEW
+  VERIFIED
+  SUSPENDED
+  REJECTED
+}
+
+enum CampaignStatus {
+  DRAFT
+  AWAITING_PAYMENT
+  PAID
+  QUEUED
+  IN_PROGRESS
+  AWAITING_PARTNER_RESULTS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+  REFUNDED
+}
+
+enum Currency {
+  NGN
+  USD
+  GBP
+  EUR
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String
+  name            String
+  role            Role      @default(ARTIST)
+  emailVerified   Boolean   @default(false)
+  phone           String?
+  tokenVersion    Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  artistProfile   ArtistProfile?
+  managerProfile  ManagerProfile?
+  labelProfile    LabelProfile?
+  partner         Partner?
+  songs           Song[]
+  campaigns       Campaign[]       @relation("ArtistCampaigns")
+  assigned        Campaign[]       @relation("AssignedCampaigns")
+  submissions     Submission[]
+  messages        Message[]        @relation("MessageSender")
+  notifications   Notification[]
+  payments        Payment[]
+  auditLogs       AuditLog[]
+  resetTokens     PasswordReset[]
+  verifyTokens    EmailVerification[]
+}
+
+model ArtistProfile {
+  id          String          @id @default(cuid())
+  userId      String          @unique
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug        String          @unique
+  stageName   String
+  bio         String?
+  country     String?
+  city        String?
+  genres      String[]
+  website     String?
+  instagram   String?
+  tiktok      String?
+  youtube     String?
+  spotify     String?
+  appleMusic  String?
+  audiomack   String?
+  verified    Boolean         @default(false)
+  managerId   String?
+  manager     ManagerProfile? @relation(fields: [managerId], references: [id])
+  labelId     String?
+  label       LabelProfile?   @relation(fields: [labelId], references: [id])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model ManagerProfile {
+  id        String          @id @default(cuid())
+  userId    String          @unique
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company   String?
+  artists   ArtistProfile[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model LabelProfile {
+  id        String          @id @default(cuid())
+  userId    String          @unique
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  labelName String
+  artists   ArtistProfile[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model Song {
+  id           String     @id @default(cuid())
+  artistId     String
+  artist       User       @relation(fields: [artistId], references: [id])
+  title        String
+  featured     String?
+  genre        String?
+  releaseDate  DateTime?
+  isrc         String?
+  songLink     String?
+  artworkKey   String?
+  lyrics       String?
+  videoLink    String?
+  pressKitKey  String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  release      Release?
+  campaigns    Campaign[]
+}
+
+model Release {
+  id          String    @id @default(cuid())
+  songId      String    @unique
+  song        Song      @relation(fields: [songId], references: [id], onDelete: Cascade)
+  title       String
+  releaseDate DateTime?
+  artworkKey  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Campaign {
+  id           String           @id @default(cuid())
+  artistId     String
+  artist       User             @relation("ArtistCampaigns", fields: [artistId], references: [id])
+  songId       String?
+  song         Song?            @relation(fields: [songId], references: [id])
+  assigneeId   String?
+  assignee     User?            @relation("AssignedCampaigns", fields: [assigneeId], references: [id])
+  name         String
+  packageId    String
+  status       CampaignStatus   @default(DRAFT)
+  budgetNgn    Int
+  currency     Currency         @default(NGN)
+  goals        String[]
+  markets      String[]
+  genres       String[]
+  progress     Int              @default(0)
+  demo         Boolean          @default(false)
+  startDate    DateTime?
+  endDate      DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  services     CampaignService[]
+  results      CampaignResult[]
+  payments     Payment[]
+  reports      Report[]
+  messages     Message[]
+}
+
+model CampaignService {
+  id          String   @id @default(cuid())
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  name        String
+  createdAt   DateTime @default(now())
+}
+
+model CampaignResult {
+  id          String   @id @default(cuid())
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  channel     String
+  label       String
+  value       String
+  awaiting    Boolean  @default(false)
+  demo        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Partner {
+  id          String        @id @default(cuid())
+  userId      String?       @unique
+  user        User?         @relation(fields: [userId], references: [id])
+  name        String
+  email       String
+  phone       String?
+  country     String?
+  city        String?
+  categories  String[]
+  platform    String?
+  profileUrl  String?
+  audience    String?
+  genres      String[]
+  description String?
+  status      PartnerStatus @default(PENDING)
+  proofNote   String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  application PartnerApplication?
+  playlists   Playlist[]
+  stations    RadioStation[]
+  djs         Dj[]
+  creators    Creator[]
+  blogs       Blog[]
+  listings    MarketplaceListing[]
+}
+
+model PartnerApplication {
+  id        String   @id @default(cuid())
+  partnerId String   @unique
+  partner   Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  terms     Boolean
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Playlist {
+  id        String   @id @default(cuid())
+  partnerId String?
+  partner   Partner? @relation(fields: [partnerId], references: [id])
+  name      String
+  platform  String
+  genres    String[]
+  country   String?
+  audience  String?
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RadioStation {
+  id        String   @id @default(cuid())
+  partnerId String?
+  partner   Partner? @relation(fields: [partnerId], references: [id])
+  name      String
+  city      String?
+  country   String?
+  genres    String[]
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  presenters RadioPresenter[]
+}
+
+model RadioPresenter {
+  id        String       @id @default(cuid())
+  stationId String?
+  station   RadioStation? @relation(fields: [stationId], references: [id])
+  name      String
+  showName  String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model Dj {
+  id        String   @id @default(cuid())
+  partnerId String?
+  partner   Partner? @relation(fields: [partnerId], references: [id])
+  name      String
+  city      String?
+  country   String?
+  genres    String[]
+  platform  String?
+  audience  String?
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Creator {
+  id        String   @id @default(cuid())
+  partnerId String?
+  partner   Partner? @relation(fields: [partnerId], references: [id])
+  name      String
+  platform  String
+  country   String?
+  city      String?
+  genres    String[]
+  audience  String?
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Blog {
+  id        String   @id @default(cuid())
+  partnerId String?
+  partner   Partner? @relation(fields: [partnerId], references: [id])
+  name      String
+  country   String?
+  genres    String[]
+  url       String?
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MediaOutlet {
+  id        String   @id @default(cuid())
+  name      String
+  kind      String
+  country   String?
+  url       String?
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Submission {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  payload    Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Placement {
+  id          String   @id @default(cuid())
+  campaignId  String
+  channel     String
+  outlet      String
+  url         String?
+  verified    Boolean  @default(false)
+  note        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id])
+  threadId   String
+  senderId   String
+  sender     User     @relation("MessageSender", fields: [senderId], references: [id])
+  body       String
+  createdAt  DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Payment {
+  id         String        @id @default(cuid())
+  userId     String
+  user       User          @relation(fields: [userId], references: [id])
+  campaignId String?
+  campaign   Campaign?     @relation(fields: [campaignId], references: [id])
+  provider   String
+  reference  String        @unique
+  amount     Int
+  currency   Currency
+  status     PaymentStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  invoice    Invoice?
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  paymentId     String   @unique
+  payment       Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  number        String   @unique
+  billTo        String
+  description   String
+  amount        Int
+  currency      Currency
+  issuedAt      DateTime @default(now())
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  title       String
+  summary     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Article {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  kind        String
+  title       String
+  excerpt     String
+  body        String
+  category    String
+  artist      String?
+  genre       String?
+  author      String
+  image       String?
+  status      String   @default("published")
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  reviews     Review[]
+}
+
+model Category {
+  id    String @id @default(cuid())
+  slug  String @unique
+  name  String
+  group String
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  rating    Int?
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model Redirect {
+  id        String   @id @default(cuid())
+  oldUrl    String   @unique
+  newUrl    String
+  type      Int      @default(301)
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  target    String?
+  meta      Json?
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model MarketplaceListing {
+  id           String   @id @default(cuid())
+  partnerId    String?
+  partner      Partner? @relation(fields: [partnerId], references: [id])
+  slug         String   @unique
+  service      String
+  category     String
+  audience     String
+  country      String
+  genre        String
+  priceNgn     Int
+  deliverables String[]
+  duration     String
+  verified     Boolean  @default(false)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

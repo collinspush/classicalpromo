@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-syne), var(--font-manrope), sans-serif;
+  --color-ink: #070708;
+  --color-ink-2: #101012;
+  --color-panel: #161618;
+  --color-line: #2c2924;
+  --color-gold: #e3b15a;
+  --color-gold-2: #f3d7a4;
+  --color-ivory: #f4efe6;
+  --color-mist: #a39e93;
+  --color-dim: #6f6a62;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #070708;
+  color: #f4efe6;
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #e3b15a;
+  color: #1a1408;
+}
+
+:focus-visible {
+  outline: 2px solid #e3b15a;
+  outline-offset: 3px;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.rise {
+  animation: rise 0.7s ease both;
+}
+
+.bar-fill {
+  transform-origin: left center;
+  animation: bar 1s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .rise,
+  .bar-fill {
+    animation: none;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  .print-sheet,
+  .print-sheet * {
+    color: #16140f !important;
+    background: white !important;
+    border-color: #d9d3c7 !important;
+  }
+}
