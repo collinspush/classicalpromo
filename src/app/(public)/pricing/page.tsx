@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/pricing" },
 };
 
-export default function PricingPage() {
-  const packages = getPackages();
+export default async function PricingPage() {
+  const packages = (await getPackages());
   return (
     <>
       <PageHeader eyebrow="Pricing" title="Know what you are buying." lede="Prices are starting points in naira, stored so they can be updated. A custom brief is scoped before any work begins." />

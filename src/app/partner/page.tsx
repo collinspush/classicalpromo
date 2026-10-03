@@ -5,8 +5,8 @@ import { readDb } from "@/lib/store";
 
 export default async function PartnerHome() {
   const session = await getSession();
-  const partner = readDb().partners.find((item) => item.userId === session?.id);
-  const messages = readDb().messages.filter((message) => session && message.participantIds.includes(session.id));
+  const partner = (await readDb()).partners.find((item) => item.userId === session?.id);
+  const messages = (await readDb()).messages.filter((message) => session && message.participantIds.includes(session.id));
   const threads = [...new Set(messages.map((message) => message.threadId))].map((id) => ({
     id,
     title: "ClassicalPromo desk",

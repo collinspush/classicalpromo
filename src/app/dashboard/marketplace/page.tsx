@@ -2,8 +2,8 @@ import Link from "next/link";
 import { naira } from "@/lib/format";
 import { readDb } from "@/lib/store";
 
-export default function DashboardMarketplace() {
-  const listings = readDb().listings.filter((item) => item.active);
+export default async function DashboardMarketplace() {
+  const listings = (await readDb()).listings.filter((item) => item.active);
   return (
     <div>
       <h1 className="font-display text-4xl uppercase">Promotion marketplace</h1>

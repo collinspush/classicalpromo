@@ -17,10 +17,10 @@ export async function POST(req: Request) {
   if (!/[A-Za-z]/.test(parsed.data.password) || !/[0-9]/.test(parsed.data.password)) {
     return jsonError("Use at least 10 characters with a letter and a number.");
   }
-  const record = takeToken(parsed.data.token, "reset");
+  const record = await takeToken(parsed.data.token, "reset");
   if (!record) return jsonError("This reset link is invalid or expired.", 400);
   const passwordHash = await bcrypt.hash(parsed.data.password, 10);
-  updateDb((db) => {
+  await updateDb((db) => {
     const user = db.users.find((item) => item.id === record.userId);
     if (!user) return;
     user.passwordHash = passwordHash;

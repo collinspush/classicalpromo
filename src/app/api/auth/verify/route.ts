@@ -10,9 +10,9 @@ export async function POST(req: Request) {
   if (blocked) return blocked;
   const parsed = await parseBody(req, schema);
   if ("error" in parsed) return parsed.error;
-  const record = takeToken(parsed.data.token, "verify");
+  const record = await takeToken(parsed.data.token, "verify");
   if (!record) return jsonError("This verification link is invalid or expired.", 400);
-  updateDb((db) => {
+  await updateDb((db) => {
     const user = db.users.find((item) => item.id === record.userId);
     if (user) user.emailVerified = true;
   });

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default async function MediaPage({ searchParams }: { searchParams: Promise<{ q?: string; category?: string }> }) {
   const query = await searchParams;
-  const articles = publishedArticles("media").filter((article) => {
+  const articles = (await publishedArticles("media")).filter((article) => {
     const text = `${article.title} ${article.excerpt} ${article.artist}`.toLowerCase();
     const matchesQuery = !query.q || text.includes(query.q.toLowerCase());
     const matchesCategory = !query.category || article.category === query.category;

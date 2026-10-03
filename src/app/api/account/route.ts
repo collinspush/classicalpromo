@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     if (!userOk) return jsonError("Current password is incorrect, or the new password is too weak.");
     return NextResponse.json({ ok: true });
   }
-  updateDb((db) => {
+  await updateDb((db) => {
     const user = db.users.find((item) => item.id === session.id);
     if (!user) return;
     if (data.action === "notifications") {
@@ -72,7 +72,7 @@ async function updatePassword(userId: string, currentPassword: string, nextPassw
   if (nextPassword.length < 10 || !/[A-Za-z]/.test(nextPassword) || !/[0-9]/.test(nextPassword)) return false;
   let ok = false;
   const hash = await bcrypt.hash(nextPassword, 10);
-  updateDb((db) => {
+  await updateDb((db) => {
     const user = db.users.find((item) => item.id === userId);
     if (!user) return;
     if (!bcrypt.compareSync(currentPassword, user.passwordHash)) return;

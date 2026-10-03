@@ -1,8 +1,8 @@
 import { SettingsDesk } from "@/components/admin/admin-forms";
 import { readDb } from "@/lib/store";
 
-export default function AdminSettings() {
-  const settings = readDb().settings;
+export default async function AdminSettings() {
+  const settings = (await readDb()).settings;
   return (
     <div>
       <h1 className="font-display text-4xl uppercase">Settings</h1>
@@ -12,7 +12,7 @@ export default function AdminSettings() {
       </div>
       <h2 className="mt-10 text-sm uppercase tracking-[0.16em] text-mist">Recent admin activity</h2>
       <ul className="mt-3 space-y-2 text-sm text-mist">
-        {readDb().audit.slice(0, 8).map((entry) => (
+        {(await readDb()).audit.slice(0, 8).map((entry) => (
           <li key={entry.id}>{entry.action} · {entry.target}</li>
         ))}
       </ul>

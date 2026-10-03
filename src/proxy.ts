@@ -1,8 +1,7 @@
 import { jwtVerify } from "jose";
 import { NextResponse, type NextRequest } from "next/server";
-import fs from "fs";
-import path from "path";
 import { authSecret } from "@/lib/secret";
+import { readDb } from "@/lib/store";
 
 async function roleOf(request: NextRequest) {
   const token = request.cookies.get("cp_session")?.value;
@@ -11,10 +10,7 @@ async function roleOf(request: NextRequest) {
     const { payload } = await jwtVerify(token, authSecret());
     const userId = payload.sub;
     if (!userId) return null;
-    const file = path.join(process.cwd(), "data", "db.json");
-    if (!fs.existsSync(file)) return { role: "ARTIST" as const };
-    const db = JSON.parse(fs.readFileSync(file, "utf8")) as { users: { id: string; role: string; tokenVersion: number }[] };
-    const user = db.users.find((item) => item.id === userId);
+    const user = (await readDb()).users.find((item) => item.id === userId);
     if (!user || user.tokenVersion !== payload.tv) return null;
     return { role: user.role };
   } catch {
@@ -27,16 +23,13 @@ export async function proxy(request: NextRequest) {
   if (pathname.startsWith("/api") || pathname.startsWith("/_next")) return NextResponse.next();
 
   try {
-    const file = path.join(process.cwd(), "data", "redirects.json");
-    if (fs.existsSync(file)) {
-      const redirects = JSON.parse(fs.readFileSync(file, "utf8")) as { oldUrl: string; newUrl: string; type: number; status: string }[];
-      const match = redirects.find((item) => item.status === "active" && item.oldUrl === pathname);
-      if (match) {
-        return NextResponse.redirect(new URL(match.newUrl, request.url), match.type === 302 ? 302 : 301);
-      }
+    const redirects = (await readDb()).redirects;
+    const match = redirects.find((item) => item.status === "active" && item.oldUrl === pathname);
+    if (match) {
+      return NextResponse.redirect(new URL(match.newUrl, request.url), match.type === 302 ? 302 : 301);
     }
   } catch {
-    // Redirect file is optional until the first seed.
+    // A missing database should not turn every public URL into a redirect loop.
   }
 
   const session = await roleOf(request);

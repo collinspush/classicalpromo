@@ -34,7 +34,7 @@ export async function getSession(): Promise<(SessionUser & { phone: string; coun
   if (!token) return null;
   const parsed = await readToken(token);
   if (!parsed) return null;
-  const user = findUserById(parsed.sub);
+  const user = await findUserById(parsed.sub);
   if (!user || user.tokenVersion !== parsed.tv) return null;
   return publicUser(user);
 }

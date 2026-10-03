@@ -8,7 +8,7 @@ import { readDb } from "@/lib/store";
 export default async function ReportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getSession();
-  const campaign = readDb().campaigns.find((item) => item.id === id);
+  const campaign = (await readDb()).campaigns.find((item) => item.id === id);
   if (!campaign || !session || (campaign.artistId !== session.id && session.role === "ARTIST")) notFound();
   return (
     <article className="print-sheet rounded-2xl border border-white/10 bg-panel p-6 sm:p-10">

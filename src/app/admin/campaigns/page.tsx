@@ -5,8 +5,8 @@ import { readDb } from "@/lib/store";
 
 const statuses = ["DRAFT", "AWAITING_PAYMENT", "PAID", "QUEUED", "IN_PROGRESS", "AWAITING_PARTNER_RESULTS", "COMPLETED", "CANCELLED"];
 
-export default function AdminCampaigns() {
-  const campaigns = readDb().campaigns;
+export default async function AdminCampaigns() {
+  const campaigns = (await readDb()).campaigns;
   return (
     <div>
       <h1 className="font-display text-4xl uppercase">Campaigns</h1>

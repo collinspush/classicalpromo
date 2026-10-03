@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   if (!session) return jsonError("Sign in to start a campaign.", 401);
   const parsed = await parseBody(req, schema);
   if ("error" in parsed) return parsed.error;
-  const db = readDb();
+  const db = (await readDb());
   const submission = db.submissions.find((item) => item.id === parsed.data.submissionId);
   if (!submission) return jsonError("That pitch could not be found.", 404);
   const pack = defaultPackages.find((item) => item.id === parsed.data.packageId);
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
   const reference = `CP-${Date.now()}`;
   const simulated = parsed.data.action === "simulate";
   const status = simulated ? "QUEUED" : "AWAITING_PAYMENT";
-  updateDb((store) => {
+  await updateDb((store) => {
     store.campaigns.unshift({
       id: campaignId,
       artistId: session.id,
@@ -102,8 +102,8 @@ export async function POST(req: Request) {
       createdAt: new Date().toISOString(),
     });
   });
-  notify(session.id, simulated ? "payment_received" : "song_submitted", simulated ? "Payment recorded" : "Invoice created", simulated ? "Demo payment marked successful. Campaign is queued." : "Bank transfer invoice is pending.");
-  if (simulated) notify(session.id, "campaign_approved", "Campaign queued", `${submission.payload.songTitle} is queued for the desk.`);
-  addAudit({ userId: session.id, action: simulated ? "payment_demo" : "invoice", target: campaignId, meta: reference });
+  await notify(session.id, simulated ? "payment_received" : "song_submitted", simulated ? "Payment recorded" : "Invoice created", simulated ? "Demo payment marked successful. Campaign is queued." : "Bank transfer invoice is pending.");
+  if (simulated) await notify(session.id, "campaign_approved", "Campaign queued", `${submission.payload.songTitle} is queued for the desk.`);
+  await addAudit({ userId: session.id, action: simulated ? "payment_demo" : "invoice", target: campaignId, meta: reference });
   return NextResponse.json({ ok: true, campaignId, paymentId });
 }

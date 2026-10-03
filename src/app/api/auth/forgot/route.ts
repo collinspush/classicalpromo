@@ -10,12 +10,12 @@ export async function POST(req: Request) {
   if (blocked) return blocked;
   const parsed = await parseBody(req, schema);
   if ("error" in parsed) return parsed.error;
-  const user = findUserByEmail(parsed.data.email);
+  const user = await findUserByEmail(parsed.data.email);
   let resetPath: string | null = null;
   if (user) {
-    const token = issueToken(user.id, "reset");
+    const token = await issueToken(user.id, "reset");
     resetPath = `/reset-password?token=${token}`;
-    notify(user.id, "password", "Reset your password", "A password reset link was requested.");
+    await notify(user.id, "password", "Reset your password", "A password reset link was requested.");
   }
   return NextResponse.json({
     ok: true,

@@ -1,7 +1,7 @@
 import { readDb } from "@/lib/store";
 
-export default function AdminArtists() {
-  const artists = readDb().users.filter((user) => user.role === "ARTIST" || user.role === "MANAGER" || user.role === "LABEL");
+export default async function AdminArtists() {
+  const artists = (await readDb()).users.filter((user) => user.role === "ARTIST" || user.role === "MANAGER" || user.role === "LABEL");
   return (
     <div>
       <h1 className="font-display text-4xl uppercase">Artists</h1>

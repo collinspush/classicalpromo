@@ -3,7 +3,7 @@ import { JsonLd } from "@/components/json-ld";
 import { getPackages } from "@/lib/pricing-data";
 import { site } from "@/lib/site";
 
-export default function Page() {
+export default async function Page() {
   return (
     <>
       <JsonLd
@@ -20,7 +20,7 @@ export default function Page() {
           },
         }}
       />
-      <HomePage packages={getPackages()} />
+      <HomePage packages={(await getPackages())} />
     </>
   );
 }

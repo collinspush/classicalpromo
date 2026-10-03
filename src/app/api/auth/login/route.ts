@@ -10,11 +10,11 @@ export async function POST(req: Request) {
   if (blocked) return blocked;
   const parsed = await parseBody(req, loginSchema);
   if ("error" in parsed) return parsed.error;
-  const user = findUserByEmail(parsed.data.email);
+  const user = await findUserByEmail(parsed.data.email);
   const valid = user ? await bcrypt.compare(parsed.data.password, user.passwordHash) : false;
   if (!user || !valid) return jsonError("Email or password is incorrect.", 401);
   const token = await signSession(user.id, user.tokenVersion);
-  addAudit({ userId: user.id, action: "login", target: user.email, meta: "" });
+  await addAudit({ userId: user.id, action: "login", target: user.email, meta: "" });
   const response = NextResponse.json({
     ok: true,
     role: user.role,

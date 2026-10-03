@@ -7,8 +7,8 @@ import { readDb } from "@/lib/store";
 export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getSession();
-  const payment = readDb().payments.find((item) => item.id === id && item.userId === session?.id);
-  const bank = readDb().settings;
+  const payment = (await readDb()).payments.find((item) => item.id === id && item.userId === session?.id);
+  const bank = (await readDb()).settings;
   if (!payment) notFound();
   return (
     <article className="print-sheet max-w-2xl rounded-2xl border border-white/10 p-8">

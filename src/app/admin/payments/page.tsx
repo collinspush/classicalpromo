@@ -1,8 +1,8 @@
 import { naira } from "@/lib/format";
 import { readDb } from "@/lib/store";
 
-export default function AdminPayments() {
-  const payments = readDb().payments;
+export default async function AdminPayments() {
+  const payments = (await readDb()).payments;
   return (
     <div>
       <h1 className="font-display text-4xl uppercase">Payments</h1>

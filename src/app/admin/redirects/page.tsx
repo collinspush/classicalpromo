@@ -1,8 +1,8 @@
 import { RedirectForm } from "@/components/admin/admin-forms";
 import { readDb } from "@/lib/store";
 
-export default function RedirectsPage() {
-  const redirects = readDb().redirects;
+export default async function RedirectsPage() {
+  const redirects = (await readDb()).redirects;
   return (
     <div>
       <h1 className="font-display text-4xl uppercase">Redirects</h1>

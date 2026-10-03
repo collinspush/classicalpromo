@@ -6,14 +6,14 @@ import { readDb } from "@/lib/store";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const listing = readDb().listings.find((item) => item.slug === slug);
+  const listing = (await readDb()).listings.find((item) => item.slug === slug);
   if (!listing) return {};
   return { title: listing.service, description: `${listing.service} for ${listing.genre} audiences in ${listing.country}.`, alternates: { canonical: `/marketplace/${slug}` } };
 }
 
 export default async function ListingPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const listing = readDb().listings.find((item) => item.slug === slug && item.active);
+  const listing = (await readDb()).listings.find((item) => item.slug === slug && item.active);
   if (!listing) notFound();
   return (
     <Container className="py-16">

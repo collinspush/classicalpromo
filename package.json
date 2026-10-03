@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "postinstall": "node scripts/push-db.cjs",
+    "build": "prisma generate && node scripts/push-db.cjs && next build",
     "start": "next start",
     "lint": "eslint"
   },

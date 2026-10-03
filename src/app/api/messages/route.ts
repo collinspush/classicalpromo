@@ -13,12 +13,12 @@ export async function POST(req: Request) {
   if (!session) return jsonError("Sign in to send a message.", 401);
   const parsed = await parseBody(req, messageSchema);
   if ("error" in parsed) return parsed.error;
-  const thread = readDb().messages.filter((item) => item.threadId === parsed.data.threadId);
+  const thread = (await readDb()).messages.filter((item) => item.threadId === parsed.data.threadId);
   if (!thread.length) return jsonError("Thread not found.", 404);
   const allowed = thread.some((item) => item.participantIds.includes(session.id)) || session.role === "ADMIN";
   if (!allowed) return jsonError("You cannot write in this thread.", 403);
   const participants = thread[0].participantIds;
-  updateDb((db) => {
+  await updateDb((db) => {
     db.messages.push({
       id: `msg_${randomUUID()}`,
       threadId: parsed.data.threadId,
@@ -31,8 +31,8 @@ export async function POST(req: Request) {
       participantIds: participants.includes(session.id) ? participants : [...participants, session.id],
     });
   });
-  participants
-    .filter((id) => id !== session.id)
-    .forEach((id) => notify(id, "message", "New message", "You have a new message in your campaign desk."));
+  for (const id of participants.filter((participantId) => participantId !== session.id)) {
+    await notify(id, "message", "New message", "You have a new message in your campaign desk.");
+  }
   return NextResponse.json({ ok: true });
 }

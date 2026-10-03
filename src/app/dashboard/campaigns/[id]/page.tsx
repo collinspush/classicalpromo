@@ -8,7 +8,7 @@ import { readDb } from "@/lib/store";
 export default async function CampaignDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getSession();
-  const campaign = readDb().campaigns.find((item) => item.id === id);
+  const campaign = (await readDb()).campaigns.find((item) => item.id === id);
   if (!campaign || !session) notFound();
   if (campaign.artistId !== session.id && session.role === "ARTIST") notFound();
   return (

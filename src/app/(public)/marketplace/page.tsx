@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/marketplace" },
 };
 
-export default function MarketplacePage() {
-  const listings = readDb().listings.filter((item) => item.active);
+export default async function MarketplacePage() {
+  const listings = (await readDb()).listings.filter((item) => item.active);
   return (
     <>
       <PageHeader eyebrow="Marketplace" title="Find the right promotion channel." lede="Artists can compare campaign types by audience, country, genre and deliverables. A verified mark means the listing was reviewed. It does not mean a result is guaranteed." />

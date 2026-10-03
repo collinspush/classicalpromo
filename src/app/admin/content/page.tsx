@@ -1,8 +1,8 @@
 import { ArticleForm } from "@/components/admin/admin-forms";
 import { publishedArticles } from "@/lib/content";
 
-export default function ContentPage() {
-  const articles = publishedArticles();
+export default async function ContentPage() {
+  const articles = await publishedArticles();
   return (
     <div>
       <h1 className="font-display text-4xl uppercase">Content</h1>

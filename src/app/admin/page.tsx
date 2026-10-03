@@ -2,8 +2,8 @@ import { DemoMark } from "@/components/ui";
 import { naira } from "@/lib/format";
 import { readDb } from "@/lib/store";
 
-export default function AdminHome() {
-  const db = readDb();
+export default async function AdminHome() {
+  const db = (await readDb());
   const liveRevenue = db.payments.filter((payment) => payment.status === "SUCCESSFUL" && payment.provider !== "demo" && !db.campaigns.find((campaign) => campaign.id === payment.campaignId)?.demo).reduce((sum, payment) => sum + payment.amount, 0);
   const cards = [
     ["Total artists", String(db.users.filter((user) => user.role === "ARTIST").length)],

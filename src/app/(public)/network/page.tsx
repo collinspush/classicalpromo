@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/network" },
 };
 
-export default function NetworkPage() {
-  const partners = readDb().partners
+export default async function NetworkPage() {
+  const partners = (await readDb()).partners
     .filter((partner) => partner.status === "VERIFIED")
     .map(({ id, name, categories, country, city, genres, platform, audience, description, status }) => ({
       id, name, categories, country, city, genres, platform, audience, description, status,

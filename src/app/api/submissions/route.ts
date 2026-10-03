@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { jsonError, limit, parseBody } from "@/lib/http";
 import { getSession } from "@/lib/session";
-import { notify, updateDb } from "@/lib/store";
+import { notify, readDb, updateDb } from "@/lib/store";
 import { sanitize } from "@/lib/format";
 import { recommendPackage } from "@/lib/recommend";
 import { pitchSchema } from "@/lib/validators";
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     packageId,
   } as PitchPayload;
   const id = `sub_${randomUUID()}`;
-  updateDb((db) => {
+  await updateDb((db) => {
     db.submissions.unshift({
       id,
       userId: session?.id ?? null,
@@ -33,6 +33,6 @@ export async function POST(req: Request) {
       createdAt: new Date().toISOString(),
     });
   });
-  if (session) notify(session.id, "song_submitted", "Song submitted", `${payload.songTitle} is in the pitch queue.`);
+  if (session) await notify(session.id, "song_submitted", "Song submitted", `${payload.songTitle} is in the pitch queue.`);
   return NextResponse.json({ id, packageId });
 }

@@ -3,8 +3,8 @@ import { readDb } from "@/lib/store";
 
 const statuses = ["PENDING", "UNDER_REVIEW", "VERIFIED", "SUSPENDED", "REJECTED"];
 
-export default function AdminPartners() {
-  const partners = readDb().partners;
+export default async function AdminPartners() {
+  const partners = (await readDb()).partners;
   return (
     <div>
       <h1 className="font-display text-4xl uppercase">Partners</h1>

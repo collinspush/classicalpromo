@@ -2,8 +2,8 @@ import "server-only";
 import { defaultPackages, type PackageConfig, type PackageId } from "@/config/pricing";
 import { readDb } from "@/lib/store";
 
-export function getPackages(): PackageConfig[] {
-  const overrides = readDb().settings.packagePrices;
+export async function getPackages(): Promise<PackageConfig[]> {
+  const overrides = (await readDb()).settings.packagePrices;
   return defaultPackages.map((item) => {
     if (!(item.id in overrides)) return item;
     const price = overrides[item.id as PackageId];

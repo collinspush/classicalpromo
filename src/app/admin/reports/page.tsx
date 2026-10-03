@@ -1,8 +1,8 @@
 import { DemoMark } from "@/components/ui";
 import { readDb } from "@/lib/store";
 
-export default function AdminReports() {
-  const campaigns = readDb().campaigns;
+export default async function AdminReports() {
+  const campaigns = (await readDb()).campaigns;
   return (
     <div>
       <h1 className="font-display text-4xl uppercase">Reports</h1>

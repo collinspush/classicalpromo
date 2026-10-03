@@ -7,7 +7,7 @@ import { readDb } from "@/lib/store";
 export default async function DashboardPage() {
   const session = await getSession();
   if (!session) return null;
-  const db = readDb();
+  const db = (await readDb());
   const campaigns = db.campaigns.filter((campaign) => campaign.artistId === session.id || (session.role !== "ARTIST" && campaign.demo));
   const songs = db.songs.filter((song) => song.artistId === session.id || (session.role !== "ARTIST" && song.artistId === "usr_artist"));
   const spend = db.payments.filter((payment) => payment.userId === session.id && payment.status === "SUCCESSFUL").reduce((sum, payment) => sum + payment.amount, 0);

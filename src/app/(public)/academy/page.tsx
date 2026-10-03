@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/academy" },
 };
 
-export default function AcademyPage() {
-  const articles = publishedArticles("academy");
+export default async function AcademyPage() {
+  const articles = await publishedArticles("academy");
   return (
     <>
       <PageHeader eyebrow="Academy" title="Learn the work before you buy it." lede="Original guides for independent artists. No guaranteed outcomes, no recycled listicles about going viral." />

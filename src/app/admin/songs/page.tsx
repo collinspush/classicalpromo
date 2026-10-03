@@ -1,7 +1,7 @@
 import { readDb } from "@/lib/store";
 
-export default function AdminSongs() {
-  const songs = readDb().songs;
+export default async function AdminSongs() {
+  const songs = (await readDb()).songs;
   return (
     <div>
       <h1 className="font-display text-4xl uppercase">Songs</h1>

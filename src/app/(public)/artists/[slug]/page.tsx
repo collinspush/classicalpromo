@@ -8,17 +8,17 @@ import { site } from "@/lib/site";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const user = readDb().users.find((item) => item.profile?.slug === slug);
+  const user = (await readDb()).users.find((item) => item.profile?.slug === slug);
   if (!user?.profile) return {};
   return { title: user.profile.stageName, description: user.profile.bio, alternates: { canonical: `/artists/${slug}` } };
 }
 
 export default async function ArtistPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const user = readDb().users.find((item) => item.profile?.slug === slug);
+  const user = (await readDb()).users.find((item) => item.profile?.slug === slug);
   const profile = user?.profile;
   if (!user || !profile) notFound();
-  const campaigns = readDb().campaigns.filter((campaign) => campaign.artistId === user.id);
+  const campaigns = (await readDb()).campaigns.filter((campaign) => campaign.artistId === user.id);
   const links = [
     ["Website", profile.website],
     ["Instagram", profile.instagram],

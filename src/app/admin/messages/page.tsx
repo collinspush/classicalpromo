@@ -4,7 +4,7 @@ import { readDb } from "@/lib/store";
 
 export default async function AdminMessages() {
   const session = await getSession();
-  const messages = readDb().messages.filter((message) => session && (message.participantIds.includes(session.id) || session.role === "ADMIN"));
+  const messages = (await readDb()).messages.filter((message) => session && (message.participantIds.includes(session.id) || session.role === "ADMIN"));
   const ids = [...new Set(messages.map((message) => message.threadId))];
   const threads = ids.map((id) => ({
     id,

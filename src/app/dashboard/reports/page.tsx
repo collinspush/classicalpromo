@@ -4,7 +4,7 @@ import { readDb } from "@/lib/store";
 
 export default async function ReportsPage() {
   const session = await getSession();
-  const campaigns = readDb().campaigns.filter((campaign) => session && (campaign.artistId === session.id || session.role !== "ARTIST"));
+  const campaigns = (await readDb()).campaigns.filter((campaign) => session && (campaign.artistId === session.id || session.role !== "ARTIST"));
   return (
     <div>
       <h1 className="font-display text-4xl uppercase">Reports</h1>

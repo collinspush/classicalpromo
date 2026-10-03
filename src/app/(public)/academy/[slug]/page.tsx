@@ -8,14 +8,14 @@ import { site } from "@/lib/site";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const article = findArticle(slug);
+  const article = await findArticle(slug);
   if (!article || article.kind !== "academy") return {};
   return { title: article.title, description: article.excerpt, alternates: { canonical: `/academy/${slug}` } };
 }
 
 export default async function AcademyArticle({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const article = findArticle(slug);
+  const article = await findArticle(slug);
   if (!article || article.kind !== "academy") notFound();
   return (
     <Container className="py-16">

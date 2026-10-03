@@ -17,11 +17,11 @@ export async function POST(req: Request) {
   if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
     return jsonError("Use at least 10 characters with a letter and a number.");
   }
-  if (findUserByEmail(email)) return jsonError("An account with that email already exists.");
+  if (await findUserByEmail(email)) return jsonError("An account with that email already exists.");
   const passwordHash = await bcrypt.hash(password, 10);
   const id = `usr_${randomUUID()}`;
-  const token = issueToken(id, "verify");
-  updateDb((db) => {
+  const token = await issueToken(id, "verify");
+  await updateDb((db) => {
     db.users.push({
       id,
       email: email.toLowerCase(),
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
       if (submission.email.toLowerCase() === email.toLowerCase()) submission.userId = id;
     });
   });
-  notify(id, "account", "Confirm your email", "Open the verification link to confirm this address.");
+  await notify(id, "account", "Confirm your email", "Open the verification link to confirm this address.");
   const session = await signSession(id, 0);
   const response = NextResponse.json({
     ok: true,

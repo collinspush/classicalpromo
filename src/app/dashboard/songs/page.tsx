@@ -4,7 +4,7 @@ import { readDb } from "@/lib/store";
 
 export default async function SongsPage() {
   const session = await getSession();
-  const songs = readDb().songs.filter((song) => session && (song.artistId === session.id || (session.role !== "ARTIST" && song.artistId === "usr_artist")));
+  const songs = (await readDb()).songs.filter((song) => session && (song.artistId === session.id || (session.role !== "ARTIST" && song.artistId === "usr_artist")));
   return (
     <div>
       <h1 className="font-display text-4xl uppercase">My songs</h1>

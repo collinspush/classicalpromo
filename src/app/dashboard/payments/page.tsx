@@ -6,7 +6,7 @@ import { readDb } from "@/lib/store";
 
 export default async function PaymentsPage() {
   const session = await getSession();
-  const payments = readDb().payments.filter((payment) => payment.userId === session?.id);
+  const payments = (await readDb()).payments.filter((payment) => payment.userId === session?.id);
   return (
     <div>
       <h1 className="font-display text-4xl uppercase">Payments</h1>

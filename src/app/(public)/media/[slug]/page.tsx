@@ -9,7 +9,7 @@ import { site } from "@/lib/site";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const article = findArticle(slug);
+  const article = await findArticle(slug);
   if (!article || article.kind !== "media") return {};
   return {
     title: article.title,
@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function MediaArticle({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const article = findArticle(slug);
+  const article = await findArticle(slug);
   if (!article || article.kind !== "media") notFound();
   return (
     <article>

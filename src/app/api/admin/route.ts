@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { jsonError, limit, parseBody } from "@/lib/http";
 import { getSession } from "@/lib/session";
-import { addAudit, notify, updateDb } from "@/lib/store";
+import { addAudit, notify, readDb, updateDb } from "@/lib/store";
 
 const schema = z.object({
   action: z.enum(["campaign", "partner", "redirect", "settings", "article"]),
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   const data = parsed.data;
 
   if (data.action === "campaign" && data.id && data.status && campaignStatuses.includes(data.status)) {
-    updateDb((db) => {
+    await updateDb((db) => {
       const campaign = db.campaigns.find((item) => item.id === data.id);
       if (!campaign) return;
       campaign.status = data.status as typeof campaign.status;
@@ -45,17 +45,17 @@ export async function POST(req: Request) {
       if (data.status === "IN_PROGRESS" && !campaign.startDate) campaign.startDate = new Date().toISOString().slice(0, 10);
       if (data.status === "COMPLETED") campaign.progress = 100;
     });
-    const campaign = (await import("@/lib/store")).readDb().campaigns.find((item) => item.id === data.id);
+    const campaign = (await readDb()).campaigns.find((item) => item.id === data.id);
     if (campaign) {
       const type = data.status === "COMPLETED" ? "campaign_completed" : data.status === "IN_PROGRESS" ? "campaign_started" : "campaign_update";
-      notify(campaign.artistId, type, "Campaign update", `${campaign.songTitle} is now ${data.status.replaceAll("_", " ").toLowerCase()}.`);
+      await notify(campaign.artistId, type, "Campaign update", `${campaign.songTitle} is now ${data.status.replaceAll("_", " ").toLowerCase()}.`);
     }
-    addAudit({ userId: session.id, action: "campaign_status", target: data.id, meta: data.status });
+    await addAudit({ userId: session.id, action: "campaign_status", target: data.id, meta: data.status });
   }
 
   if (data.action === "partner" && data.id && data.status && partnerStatuses.includes(data.status)) {
     let emailUser: string | null = null;
-    updateDb((db) => {
+    await updateDb((db) => {
       const partner = db.partners.find((item) => item.id === data.id);
       if (!partner) return;
       partner.status = data.status as typeof partner.status;
@@ -64,8 +64,8 @@ export async function POST(req: Request) {
         if (entry.partnerId === partner.id) entry.verified = partner.status === "VERIFIED";
       });
     });
-    if (emailUser) notify(emailUser, "partner_application", "Partner application updated", `Status: ${data.status.replaceAll("_", " ").toLowerCase()}.`);
-    addAudit({ userId: session.id, action: "partner_status", target: data.id ?? "", meta: data.status ?? "" });
+    if (emailUser) await notify(emailUser, "partner_application", "Partner application updated", `Status: ${data.status.replaceAll("_", " ").toLowerCase()}.`);
+    await addAudit({ userId: session.id, action: "partner_status", target: data.id ?? "", meta: data.status ?? "" });
   }
 
   const oldUrl = data.oldUrl ?? "";
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
     if (!oldUrl.startsWith("/") || !newUrl.startsWith("/") || oldUrl.startsWith("//") || newUrl.startsWith("//")) {
       return jsonError("Use internal paths beginning with a single slash.");
     }
-    updateDb((db) => {
+    await updateDb((db) => {
       const existing = db.redirects.find((item) => item.oldUrl === oldUrl);
       if (existing) {
         existing.newUrl = newUrl;
@@ -91,22 +91,22 @@ export async function POST(req: Request) {
         });
       }
     });
-    addAudit({ userId: session.id, action: "redirect", target: oldUrl, meta: newUrl });
+    await addAudit({ userId: session.id, action: "redirect", target: oldUrl, meta: newUrl });
   }
 
   if (data.action === "settings") {
-    updateDb((db) => {
+    await updateDb((db) => {
       if (data.bankName) db.settings.bankName = data.bankName;
       if (data.accountName) db.settings.accountName = data.accountName;
       if (data.accountNumber) db.settings.accountNumber = data.accountNumber;
       if (data.packageId) db.settings.packagePrices[data.packageId] = data.price ?? null;
     });
-    addAudit({ userId: session.id, action: "settings", target: data.packageId ?? "bank", meta: "" });
+    await addAudit({ userId: session.id, action: "settings", target: data.packageId ?? "bank", meta: "" });
   }
 
   if (data.action === "article" && data.title && data.body && data.category) {
     const slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 80);
-    updateDb((db) => {
+    await updateDb((db) => {
       db.articles.unshift({
         slug: `${slug}-${db.articles.length + 1}`,
         kind: "media",
@@ -122,7 +122,7 @@ export async function POST(req: Request) {
         status: "published",
       });
     });
-    addAudit({ userId: session.id, action: "article", target: slug, meta: "" });
+    await addAudit({ userId: session.id, action: "article", target: slug, meta: "" });
   }
 
   return NextResponse.json({ ok: true });

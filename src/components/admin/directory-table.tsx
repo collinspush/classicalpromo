@@ -2,8 +2,8 @@ import { DemoMark } from "@/components/ui";
 import { readDb } from "@/lib/store";
 import type { DirectoryRecord } from "@/lib/types";
 
-export function DirectoryTable({ kind, title }: { kind: DirectoryRecord["kind"]; title: string }) {
-  const rows = readDb().directory.filter((row) => row.kind === kind);
+export async function DirectoryTable({ kind, title }: { kind: DirectoryRecord["kind"]; title: string }) {
+  const rows = (await readDb()).directory.filter((row) => row.kind === kind);
   return (
     <div>
       <div className="flex items-center gap-3">
